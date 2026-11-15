@@ -3,6 +3,7 @@ on-the-fly-nvs/
 
 # Downloaded models / caches
 torch_cache/
+.view_cache/
 .pip-cache/
 __pycache__/
 *.pyc

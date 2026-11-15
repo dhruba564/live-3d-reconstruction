@@ -157,8 +157,10 @@ A 37-second video takes about 14 minutes for the live pass plus about 20 minutes
 ```powershell
 python view_otf.py                                  # newest run
 python view_otf.py live_runs\20261115_104113        # a specific run
+python view_otf.py D:\path\to\any_splat.ply         # any standard 3DGS .ply (Brush, SuperSplat, ...)
 ```
 Opens on-the-fly-nvs's viewer, which renders the scene the same way as during the live demo.
+You can also set `PLY` at the top of the script and press ▶ Run. Plain point clouds (only x y z + colour) can't be shown here; use MeshLab for those.
 Controls: `W A S D Q E` move, `I J K L U O` rotate.
 
 ---
