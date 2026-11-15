@@ -1,0 +1,9 @@
+# Packages for the launcher scripts (run_live.py, run_otf.py, view_otf.py) and tools/.
+# Install into your normal Python 3.12:
+#     python -m pip install -r requirements.txt
+#
+# The reconstruction itself runs in a separate environment inside on-the-fly-nvs/.venv
+# (see requirements-onthefly.txt and setup.ps1).
+
+numpy>=1.26
+opencv-python>=4.8

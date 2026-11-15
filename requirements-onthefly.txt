@@ -1,0 +1,18 @@
+# Environment for on-the-fly-nvs (on-the-fly-nvs/.venv). Installed by setup.ps1.
+# Versions are the ones this demo was tested with (Windows 11, CUDA 12.8, RTX 3050 4 GB).
+#
+# Step 1 - PyTorch with CUDA 12.8 (needs the PyTorch index):
+#     pip install torch==2.7.0 torchvision==0.22.0 xformers==0.0.30 --index-url https://download.pytorch.org/whl/cu128
+# Step 2 - this file:
+#     pip install -r requirements-onthefly.txt
+# Step 3 - on-the-fly-nvs's own requirements (compiles CUDA extensions; run inside the
+#          Visual Studio "x64 Native Tools" environment, see setup.ps1):
+#     pip install --no-build-isolation -r on-the-fly-nvs/requirements.txt
+
+# CuPy 14 does not work with this code (its CUDA headers require C++17) -> keep 13.x
+cupy-cuda12x>=13,<14
+# build tools for the CUDA extensions and the graphdecoviewer package
+ninja
+hatchling
+setuptools
+wheel

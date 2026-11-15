@@ -1,0 +1,79 @@
+diff --git a/dataloaders/stream_dataset.py b/dataloaders/stream_dataset.py
+index 0bb4da5..098faa3 100644
+--- a/dataloaders/stream_dataset.py
++++ b/dataloaders/stream_dataset.py
+@@ -10,6 +10,7 @@
+ #
+ 
+ import argparse
++import os
+ import queue
+ import time
+ from threading import Thread
+@@ -18,6 +19,8 @@ import cv2
+ import torch
+ from torch import Tensor
+ 
++ROTATIONS = {"90": cv2.ROTATE_90_CLOCKWISE, "180": cv2.ROTATE_180, "270": cv2.ROTATE_90_COUNTERCLOCKWISE}
++
+ 
+ class StreamDataset:
+     def __init__(self, video_url: str, downsampling: float, retry_delay: float = 1.0):
+@@ -73,6 +76,10 @@ class StreamDataset:
+     def getnext(self) -> tuple[Tensor, dict]:
+         frame = self.frame_queue.get(block=True)
+         self.num_frames += 1
++        # optional rotation of the phone stream (set by run_live.py): 90, 180 or 270 degrees clockwise
++        rot = os.environ.get("OTF_ROTATE", "0")
++        if rot in ROTATIONS:
++            frame = cv2.rotate(frame, ROTATIONS[rot])
+         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+         if self.downsampling > 0.0 and self.downsampling != 1.0: 
+             frame = cv2.resize(
+diff --git a/scene/anchor.py b/scene/anchor.py
+index 0ce6fc1..2b540ca 100644
+--- a/scene/anchor.py
++++ b/scene/anchor.py
+@@ -229,6 +229,7 @@ class Anchor:
+         attributes = np.concatenate(
+             (xyz, normals, f_dc, f_rest, opacities, scale, rotation), axis=1
+         )
+-        elements[:] = list(map(tuple, attributes))
++        # memory-efficient (original: list(map(tuple, ...)) ran out of RAM on Windows)
++        elements[:] = np.ascontiguousarray(attributes, dtype=np.float32).view(dtype_full).reshape(-1)
+         el = PlyElement.describe(elements, "vertex")
+         PlyData([el]).write(path)
+diff --git a/webviewer/webviewer.py b/webviewer/webviewer.py
+index 5d11129..47b621b 100644
+--- a/webviewer/webviewer.py
++++ b/webviewer/webviewer.py
+@@ -11,6 +11,7 @@
+ 
+ import cv2
+ import json
++import os
+ import time
+ import torch
+ from utils import fov2focal, focal2fov
+@@ -79,8 +80,10 @@ class WebViewer:
+                 # Receive state from client
+                 data = json.loads(websocket.recv())
+                 self.state = data["state"]
+-                res_x = data["res_x"] // 2
+-                res_y = data["res_y"] // 2
++                # render resolution / JPEG quality are set by run_live.py (originally: half size, quality 50)
++                view_div = float(os.environ.get("OTF_VIEW_DIV", "2"))
++                res_x = int(data["res_x"] / view_div)
++                res_y = int(data["res_y"] / view_div)
+                 fov_y = self.scene_model.FoVy
+                 focal = fov2focal(fov_y, res_y)
+                 fov_x = focal2fov(focal, res_x)
+@@ -103,7 +106,7 @@ class WebViewer:
+                 image = render_pkg["render"]
+                 image = image.clamp(0, 1.0).mul(255).permute(1, 2, 0).byte().detach().cpu().numpy()
+ 
+-                _, buffer = cv2.imencode(".jpg", cv2.cvtColor(image, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, 50])
++                _, buffer = cv2.imencode(".jpg", cv2.cvtColor(image, cv2.COLOR_RGB2BGR), [cv2.IMWRITE_JPEG_QUALITY, int(os.environ.get("OTF_JPEG_QUALITY", "50"))])
+                 websocket.send(buffer.tobytes())
+             except ConnectionClosed:
+                 print("Client disconnected.")

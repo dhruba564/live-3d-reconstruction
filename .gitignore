@@ -1,0 +1,19 @@
+# Third-party code (cloned + patched by setup.ps1)
+on-the-fly-nvs/
+
+# Downloaded models / caches
+torch_cache/
+.pip-cache/
+__pycache__/
+*.pyc
+
+# Reconstruction outputs (large)
+live_runs/
+otf_runs/
+*.ply
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini

@@ -1,0 +1,7 @@
+# Keep the patch byte-exact so `git apply` works on any OS
+*.patch -text
+# Normalise line endings for source files
+*.py   text eol=lf
+*.md   text eol=lf
+*.txt  text eol=lf
+*.ps1  text eol=crlf
